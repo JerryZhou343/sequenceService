@@ -3,11 +3,13 @@ package service
 import (
     "context"
     grpc_transport "github.com/go-kit/kit/transport/grpc"
+    gcontext "golang.org/x/net/context"
     "github.com/mfslog/sequenceService/proto"
     "github.com/go-kit/kit/endpoint"
     "net"
     "google.golang.org/grpc"
     "fmt"
+    "github.com/mfslog/sequenceService/Server/log"
 )
 
 
@@ -16,15 +18,7 @@ type SequenceServer struct{
 }
 
 
-func decodeRequest(_ context.Context, req interface{}) (interface{}, error) {
-    return req, nil
-}
-
-func encodeResponse(_ context.Context, rsp interface{}) (interface{}, error) {
-    return rsp, nil
-}
-
-func (s *SequenceServer)GetSequence(ctx context.Context, req *sequence.SequenceRequest)(*sequence.SequenceReply,error){
+func (s *SequenceServer)GetSequence(ctx gcontext.Context, req *sequence.SequenceRequest)(*sequence.SequenceReply,error){
     _, rsp, err := s.getSequenceHandler.ServeGRPC(ctx, req)
     if err != nil {
         return nil, err
@@ -32,9 +26,20 @@ func (s *SequenceServer)GetSequence(ctx context.Context, req *sequence.SequenceR
     return rsp.(*sequence.SequenceReply),err
 }
 
+
+func decodeRequest(_ context.Context, req interface{}) (interface{}, error) {
+    return req, nil
+}
+
+
+
+func encodeResponse(_ context.Context, rsp interface{}) (interface{}, error) {
+    return rsp, nil
+}
+
+
 func makeGetSeqEndpoint() endpoint.Endpoint {
     return func(ctx context.Context, request interface{}) (interface{}, error) {
-        //请求列表时返回 书籍列表
         req := request.(*sequence.SequenceRequest)
         seq := new(sequence.SequenceReply)
         seq.CallSeq = req.CallSeq
@@ -42,6 +47,8 @@ func makeGetSeqEndpoint() endpoint.Endpoint {
         return seq,nil
     }
 }
+
+
 
 func NewServer(port int){
     
@@ -55,10 +62,11 @@ func NewServer(port int){
     
     //监听服务
     serviceAddress := fmt.Sprintf("0.0.0.0:%d",port)
+    log.Info(0,"listen:" + serviceAddress)
     seqServer.getSequenceHandler = seqHandler
     
     ls, _ := net.Listen("tcp", serviceAddress)
-    gs := grpc.NewServer(grpc.UnaryInterceptor(grpc_transport.Interceptor))
+    gs := grpc.NewServer()
     
     sequence.RegisterSequenceServer(gs, seqServer)
     
