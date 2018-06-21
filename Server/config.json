@@ -1,0 +1,11 @@
+{
+  "common":{
+    "log_path":"./logFile/"
+  },
+  "service_register":{
+    "service_name":"sequenceNumber",
+    "base_path":"/private.com/service_cluster/",
+    "service_port":8484,
+    "etcd_address":["http://127.0.0.1:2379"]
+  }
+}
