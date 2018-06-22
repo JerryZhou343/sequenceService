@@ -11,7 +11,8 @@ message SequenceRequest {
     int64 callSeq = 1; // 请求时的序列号
     int32 firstBID  = 2; //一级业务ID
     int32 secondBID = 3; //二级业务ID
-    int32 mode = 4; //序列号模式，0 无序模式， 1 有序模式, 2 调用链ID 和 seq 号同时请求，3 只请求call id
+    int32 target = 4; //请求目标 1 调用链ID 2 序列号 3：调用链ID 和 序列号
+    int32 mode = 5; //序列号模式，1 无序模式， 2 有序模式
 }
 
 
