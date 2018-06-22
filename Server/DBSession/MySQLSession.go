@@ -41,6 +41,7 @@ func (db *DBConnectInstance)connectSYSDB(cfg *configer.DBConfig){
     }
     db.SYSDB.DB().SetMaxIdleConns(10)
     db.SYSDB.DB().SetMaxOpenConns(100)
+    db.SYSDB.SingularTable(true) //全局禁用表名复数形式
 }
 
 

@@ -43,7 +43,19 @@ func makeGetSeqEndpoint() endpoint.Endpoint {
         req := request.(*sequence.SequenceRequest)
         seq := new(sequence.SequenceReply)
         seq.CallSeq = req.CallSeq
-        seq.CallID = GetSnowflakeId()
+        if req.Target == 1 || req.Target == 3{
+            seq.CallID = GetSnowflakeId()
+        }
+        
+        if req.Target == 2 || req.Target == 3{
+            if req.Mode == 1{
+                // 有序序号
+                seq.Seq = GetOrderSequnce(req.FirstBID,req.SecondBID)
+            }else{
+                // 无序序号
+                seq.Seq = "bbb"
+            }
+        }
         return seq,nil
     }
 }

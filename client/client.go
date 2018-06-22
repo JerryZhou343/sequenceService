@@ -72,9 +72,10 @@ func reqFactory(instanceAddr string) (endpoint.Endpoint, io.Closer, error) {
         }
         defer conn.Close()
         seqClient := sequence.NewSequenceClient(conn)
-        seqInfo,_:=seqClient.GetSequence(context.Background(),&sequence.SequenceRequest{CallSeq: 1, FirstBID:0, SecondBID:0, Mode:3})
+        seqInfo,_:=seqClient.GetSequence(context.Background(),&sequence.SequenceRequest{CallSeq: 1, FirstBID:420000000, SecondBID:58,Target:3, Mode:2})
         fmt.Println("get call id")
         fmt.Println("call seq", " => ", "call id:", seqInfo.GetCallID())
+        fmt.Println("sequence " , seqInfo.GetCallSeq() )
         return nil,nil
     },nil,nil
 }
