@@ -91,7 +91,7 @@ func main(){
             etcdService.RegisterService()
             
             //7.监听端口,对外服务
-           service.NewServer(8484)
+           service.NewServer(common.Port)
         },
     }
     

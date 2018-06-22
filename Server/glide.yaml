@@ -1,0 +1,27 @@
+package: github.com/mfslog/sequenceService/Server
+import:
+- package: github.com/coreos/etcd
+  version: v3.3.8
+  subpackages:
+  - clientv3
+- package: github.com/go-kit/kit
+  version: v0.7.0
+  subpackages:
+  - endpoint
+  - log
+  - log/level
+  - sd/etcdv3
+  - transport/grpc
+- package: github.com/go-sql-driver/mysql
+  version: v1.4.0
+- package: github.com/jinzhu/gorm
+  version: v1.9.1
+- package: github.com/mfslog/sequenceService
+  subpackages:
+  - proto
+- package: github.com/spf13/cobra
+  version: v0.0.3
+- package: github.com/spf13/viper
+  version: v1.0.2
+- package: golang.org/x/net/context
+- package: google.golang.org/grpc
