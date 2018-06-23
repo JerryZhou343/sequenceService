@@ -1,14 +1,12 @@
 package DAO
 
 import (
-    "github.com/jinzhu/gorm"
     "github.com/mfslog/sequenceService/Server/DBSession"
 )
 
 type TSequenceNumber struct{
-    gorm.Model
-    FirstId int32 `gorm:"index;column:first_id"`
-    SecondId int32 `gorm:"index;column:second_id"`
+    FirstId int32 `gorm:"primary_key;column:first_id"`
+    SecondId int32 `gorm:"primary_key;column:second_id"`
     BaseValue int64 `gorm:"column:base_value"`
     MaxValue int64  `gorm:"column:max_value"`
     CurrentValue int64 `gorm:"column:current_value"`
@@ -30,8 +28,7 @@ func (seq *TSequenceNumber)GetOneByBusinessID(firstId int32 , secondId int32){
     // 查询
     
     db.SYSDB.Select("first_id,second_id,base_value,max_value,current_value,step_length,reset_type,last_reset_time").
-        Where("first_id = ? and second_id = ? for update",firstId,secondId).
-        Find(seq)
+        Where("first_id = ? and second_id = ? ",firstId,secondId).First(seq)
 }
 
 

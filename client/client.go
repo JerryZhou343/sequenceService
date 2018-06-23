@@ -18,7 +18,7 @@ func main() {
     
     var (
         //注册中心地址
-        etcdServer = "127.0.0.1:2379"
+        etcdServer = "192.168.0.109:2379"
         //监听的服务前缀
         prefix     = "/private.com/service_cluster/sequenceNumber/host_list_t"
         ctx        = context.Background()
@@ -72,10 +72,10 @@ func reqFactory(instanceAddr string) (endpoint.Endpoint, io.Closer, error) {
         }
         defer conn.Close()
         seqClient := sequence.NewSequenceClient(conn)
-        seqInfo,_:=seqClient.GetSequence(context.Background(),&sequence.SequenceRequest{CallSeq: 1, FirstBID:420000000, SecondBID:58,Target:3, Mode:2})
+        seqInfo,_:=seqClient.GetSequence(context.Background(),&sequence.SequenceRequest{CallSeq: 1, FirstBID:42000000, SecondBID:58,Target:3, Mode:1})
         fmt.Println("get call id")
         fmt.Println("call seq", " => ", "call id:", seqInfo.GetCallID())
-        fmt.Println("sequence " , seqInfo.GetCallSeq() )
+        fmt.Println("sequence " , seqInfo.GetSeq() )
         return nil,nil
     },nil,nil
 }

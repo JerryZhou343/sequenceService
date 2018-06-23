@@ -17,10 +17,11 @@ func GetOrderSequnce(firstId int32, secondId int32)string{
     switch(seqRecord.RsetType){
     case 1: //按天重置
         if currentTime.After(lastResetTime.Add(time.Hour*24)) {
-            currentTimeStr := currentTime.Format("yyyy-mm-dd")
-            curDayTime,_ := time.Parse("yyyy-mm-dd",currentTimeStr)
+            currentTimeStr := currentTime.Format("2006-01-02")
+            curDayTime,_ := time.ParseInLocation("2006-01-02",currentTimeStr,time.Local)
             curDayStamp := curDayTime.Unix()
             var tmp int32 = int32(curDayStamp)
+            log.Debug(0,fmt.Sprintf("value:%d",tmp))
             //重置sequence
             seqRecord.ResetSeqByBussinessID(firstId,secondId,tmp)
             //重新获得sequence值
@@ -30,11 +31,10 @@ func GetOrderSequnce(firstId int32, secondId int32)string{
     
     newValue := seqRecord.CurrentValue + int64(seqRecord.StepLength)
     var sequence string
-    
     if newValue < seqRecord.MaxValue {
-        curstr := currentTime.Format("yyyymmdd")
+        curstr := currentTime.Format("20060102")
         seqRecord.UpdateSeqByBusinessId(firstId,secondId,newValue)
-        sequence = fmt.Sprintf("%s%d%d%d",curstr,firstId,secondId,newValue)
+        sequence = fmt.Sprintf("%s%d%d%.10d",curstr,firstId,secondId,newValue)
     }else{
         log.Error(0,fmt.Sprintf("error current sequence for [%d:%d] Depletion",firstId,secondId))
         sequence = ""
