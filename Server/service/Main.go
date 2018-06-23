@@ -74,7 +74,7 @@ func NewServer(port int){
     
     //监听服务
     serviceAddress := fmt.Sprintf("0.0.0.0:%d",port)
-    log.Info(0,"listen:" + serviceAddress)
+    log.Info("listen:" + serviceAddress)
     seqServer.getSequenceHandler = seqHandler
     
     ls, _ := net.Listen("tcp", serviceAddress)

@@ -13,6 +13,7 @@ import (
     "github.com/mfslog/sequenceService/Server/DBSession"
     "github.com/mfslog/sequenceService/Server/serverPlugin"
     "github.com/mfslog/sequenceService/Server/service"
+    "github.com/mfslog/sequenceService/Server/cacheSession"
 )
 
 func main(){
@@ -57,13 +58,10 @@ func main(){
             
             
             //5.连接redis 数据库
-            //cacheInstance := cacheSession.GetInstance()
-            //cacheInstance.InitRedisCon()
+            cacheInstance := cacheSession.GetInstance()
+            cacheInstance.InitCon()
             
-            //6.连接kafka
-            
-            //kafka := kafka2.GetProducerInstance()
-            //kafka.Init()
+
             
             //6.向etcd 注册服务
             // 获取IP 和  port

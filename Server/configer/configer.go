@@ -36,12 +36,16 @@ type DBConfig struct{
     DBUser string
     DBPasswd string
     DBName string
+    DBMinCon int
+    DBMaxCon int
 }
 
 type CacheConfig struct{
     Hostip string
     Hostport string
     Passwd string
+    PoolSize int
+    DBNum int
 }
 
 
@@ -63,22 +67,24 @@ func (cfg *Configer)LocadConfig() {
     
     //读取配置信息
     cfg.SYSDBCfg =&DBConfig{
-        DBHostIP: etcd.getStringValue(key + "sysDB/ip"),
-        DBHostPort: etcd.getStringValue(key+"sysDB/port"),
-        DBName : etcd.getStringValue(key + "sysDB/name"),
-        DBUser: etcd.getStringValue(key + "sysDB/user"),
-        DBPasswd: etcd.getStringValue(key + "sysDB/passwd"),
+        DBHostIP: etcd.getStringValue(key + "sysDB/ip","127.0.0.1"),
+        DBHostPort: etcd.getStringValue(key+"sysDB/port","3306"),
+        DBName : etcd.getStringValue(key + "sysDB/name","sysDB"),
+        DBUser: etcd.getStringValue(key + "sysDB/user","root"),
+        DBPasswd: etcd.getStringValue(key + "sysDB/passwd","root"),
+        DBMaxCon: etcd.getIntVale(key + "sysDB/maxcon",10),
+        DBMinCon: etcd.getIntVale(key + "sysDB/mincon",20),
     }
     
     
     
     cfg.cacheConfig = &CacheConfig{
-        Hostip : etcd.getStringValue(key + "redis/ip"),
-        Hostport:etcd.getStringValue(key + "redis/port"),
-        Passwd: etcd.getStringValue(key + "redis/passwd"),
+        Hostip : etcd.getStringValue(key + "redis/ip","127.0.0.1"),
+        Hostport:etcd.getStringValue(key + "redis/port","6379"),
+        Passwd: etcd.getStringValue(key + "redis/passwd","redis"),
+        PoolSize:etcd.getIntVale(key + "redis/poolSize",10),
+        DBNum: etcd.getIntVale(key + "redis/dbNum",0),
     }
-    
-    //cfg.kafkaAddress = etcd.getStringValue(key + "kafka/hosts")
     //断开和etcd 的连接
     etcd.disconnect()
 }
@@ -95,8 +101,3 @@ func (cfg *Configer)GetSYSDBInfo()*DBConfig{
 func (cfg *Configer)GetRedisInfo()*CacheConfig{
     return cfg.cacheConfig;
 }
-
-//返回Kafka地址
-//func (cfg *Configer)GetKafaAddress()string{
-//    return cfg.kafkaAddress
-//}

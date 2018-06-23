@@ -48,7 +48,7 @@ func GetOrderSequnce(firstId int32, secondId int32)string{
         seqRecord.UpdateSeqByBusinessId(firstId,secondId,newValue)
         sequence = fmt.Sprintf("%s%d%d%.10d",curstr,firstId,secondId,newValue)
     }else{
-        log.Error(0,fmt.Sprintf("error current sequence for [%d:%d] Depletion",firstId,secondId))
+        log.Error(fmt.Sprintf("error current sequence for [%d:%d] Depletion",firstId,secondId))
         sequence = ""
     }
     return sequence

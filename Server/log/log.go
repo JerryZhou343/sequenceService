@@ -75,14 +75,14 @@ func SetupLogger(){
 }
 
 
-func Info(callId int64,msg string){
-    level.Info(logger).Log("module", viper.GetString("service_register.service_name"),"callId", callId,"msg",msg)
+func Info(msg string){
+    level.Info(logger).Log("module", viper.GetString("service_register.service_name"),"msg",msg)
 }
 
-func Error(callId int64, msg string){
-    level.Error(logger).Log("module",viper.GetString("service_register.service_name"), "callId",callId,"msg",msg)
+func Error(msg string){
+    level.Error(logger).Log("module",viper.GetString("service_register.service_name"), "msg",msg)
 }
 
-func Debug(callId int64, msg string){
-    level.Debug(logger).Log("module",viper.GetString("service_register.service_name"),"callId", callId,"msg",msg)
+func Debug(msg string){
+    level.Debug(logger).Log("module",viper.GetString("service_register.service_name"),"msg",msg)
 }

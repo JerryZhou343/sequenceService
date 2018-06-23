@@ -34,7 +34,7 @@ func (etcd *EtcdService)disconnect(){
 //通过key值去etcd中查找对应的value
 //key 为需要查找的key
 //返回了类型为string
-func (etcd *EtcdService)getStringValue(key string)string{
+func (etcd *EtcdService)getStringValue(key string,defaultValue string)string{
     ctx, cancel := context.WithTimeout(context.Background(), time.Second)
     
     resp, err := etcd.client.Get(ctx, key)
@@ -43,7 +43,7 @@ func (etcd *EtcdService)getStringValue(key string)string{
         return ""
     }
     
-    var value string = ""
+    var value string = defaultValue
     for _, ev := range resp.Kvs {
         value = fmt.Sprintf("%s",ev.Value)
     }
@@ -55,7 +55,7 @@ func (etcd *EtcdService)getStringValue(key string)string{
 //通过key值去etcd中查找对应的value
 //key为需要查找的key
 //返回类型为int
-func (etcd *EtcdService)getIntVale(key string)int{
+func (etcd *EtcdService)getIntVale(key string, defaultValue int)int{
     ctx, cancel := context.WithTimeout(context.Background(), time.Second)
     
     resp, err := etcd.client.Get(ctx, key)
@@ -63,7 +63,7 @@ func (etcd *EtcdService)getIntVale(key string)int{
     if err != nil {
         return 0
     }
-    var value int = 0
+    var value int = defaultValue
     for _, ev := range resp.Kvs {
         tmpValue := fmt.Sprintf("%d",ev.Value)
         value,_ = strconv.Atoi(tmpValue)

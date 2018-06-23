@@ -36,11 +36,11 @@ func (db *DBConnectInstance)connectSYSDB(cfg *configer.DBConfig){
     sysDBUrl := cfg.DBUser+":" + cfg.DBPasswd + "@tcp("+ cfg.DBHostIP + ":" + cfg.DBHostPort + ")/" + cfg.DBName + "?charset=utf8&parseTime=True&loc=Local"
     db.SYSDB, err = gorm.Open("mysql",sysDBUrl)
     if err != nil{
-        log.Error(0,"connect sys DB Failed [" + sysDBUrl +"]")
+        log.Error("connect sys DB Failed [" + sysDBUrl +"]")
         os.Exit(1)
     }
-    db.SYSDB.DB().SetMaxIdleConns(10)
-    db.SYSDB.DB().SetMaxOpenConns(100)
+    db.SYSDB.DB().SetMaxIdleConns(cfg.DBMinCon)
+    db.SYSDB.DB().SetMaxOpenConns(cfg.DBMaxCon)
     db.SYSDB.SingularTable(true) //全局禁用表名复数形式
     db.SYSDB.LogMode(false)
 }
