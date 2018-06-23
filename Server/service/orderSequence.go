@@ -14,7 +14,7 @@ func GetOrderSequnce(firstId int32, secondId int32)string{
 
     var curResetStamp int32
     //1.获得当前重置时间
-    switch(seqRecord.RsetType){//判断序号reset类型
+    switch(seqRecord.ResetType){//判断序号reset类型
     case 1: //按天重置
         //1.获得当前日期的零点
         currentTimeStr := currentTime.Format("2006-01-02")
@@ -45,7 +45,7 @@ func GetOrderSequnce(firstId int32, secondId int32)string{
     var sequence string
     if newValue < seqRecord.MaxValue {
         curstr := currentTime.Format("20060102")
-        seqRecord.UpdateSeqByBusinessId(firstId,secondId,newValue)
+        seqRecord.UpdateSeqByBussinessID(firstId,secondId,newValue)
         sequence = fmt.Sprintf("%s%d%d%.10d",curstr,firstId,secondId,newValue)
     }else{
         log.Error(fmt.Sprintf("error current sequence for [%d:%d] Depletion",firstId,secondId))

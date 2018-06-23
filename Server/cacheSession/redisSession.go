@@ -14,7 +14,7 @@ type redisConIns struct{
 	client *redis.Client
 }
 
-var DBIns *redisConIns
+var redisIns *redisConIns
 
 var once sync.Once
 
@@ -22,9 +22,9 @@ var once sync.Once
 //单例返回 redisCon Instance
 func GetInstance() *redisConIns {
 	once.Do(func() {
-		DBIns = &redisConIns{}
+		redisIns = &redisConIns{}
 	})
-	return DBIns
+	return redisIns
 }
 
 func (rds *redisConIns)InitCon(){
