@@ -4,7 +4,7 @@ import (
     "strings"
     "github.com/spf13/viper"
     "sync"
-    "os"
+    "github.com/mfslog/sequenceService/Server/serverPlugin"
 )
 
 var instance *Configer
@@ -48,45 +48,38 @@ type CacheConfig struct{
     DBNum int
 }
 
+type lastTimeStamp struct{
+    SnowFlakeStamp int
+    DisorderStamp int
+}
+
 
 //加载etcd 中的配置信息
 func (cfg *Configer)LocadConfig() {
-    //local db config
     basePath := viper.GetString("service_register.base_path")
     name := viper.GetString("service_register.service_name")
-    etcdEndPoints := viper.GetStringSlice("service_register.etcd_address")
     var key string = strings.TrimRight(basePath,"/") + "/" + name + "/config/"
-    
-    etcd := EtcdService{}
-    
-    //连接etcd
-    err := etcd.connectEtcd(etcdEndPoints)
-    if err != nil{
-        os.Exit(1)
-    }
-    
+    etcd := serverplugin.GetEtcdConIns()
     //读取配置信息
     cfg.SYSDBCfg =&DBConfig{
-        DBHostIP: etcd.getStringValue(key + "sysDB/ip","127.0.0.1"),
-        DBHostPort: etcd.getStringValue(key+"sysDB/port","3306"),
-        DBName : etcd.getStringValue(key + "sysDB/name","sysDB"),
-        DBUser: etcd.getStringValue(key + "sysDB/user","root"),
-        DBPasswd: etcd.getStringValue(key + "sysDB/passwd","root"),
-        DBMaxCon: etcd.getIntVale(key + "sysDB/maxcon",10),
-        DBMinCon: etcd.getIntVale(key + "sysDB/mincon",20),
+        DBHostIP: etcd.GetStringValue(key + "sysDB/ip","127.0.0.1"),
+        DBHostPort: etcd.GetStringValue(key+"sysDB/port","3306"),
+        DBName : etcd.GetStringValue(key + "sysDB/name","sysDB"),
+        DBUser: etcd.GetStringValue(key + "sysDB/user","root"),
+        DBPasswd: etcd.GetStringValue(key + "sysDB/passwd","root"),
+        DBMaxCon: etcd.GetIntVale(key + "sysDB/maxcon",10),
+        DBMinCon: etcd.GetIntVale(key + "sysDB/mincon",20),
     }
     
     
     
     cfg.cacheConfig = &CacheConfig{
-        Hostip : etcd.getStringValue(key + "redis/ip","127.0.0.1"),
-        Hostport:etcd.getStringValue(key + "redis/port","6379"),
-        Passwd: etcd.getStringValue(key + "redis/passwd","redis"),
-        PoolSize:etcd.getIntVale(key + "redis/poolSize",10),
-        DBNum: etcd.getIntVale(key + "redis/dbNum",0),
+        Hostip : etcd.GetStringValue(key + "redis/ip","127.0.0.1"),
+        Hostport:etcd.GetStringValue(key + "redis/port","6379"),
+        Passwd: etcd.GetStringValue(key + "redis/passwd","redis"),
+        PoolSize:etcd.GetIntVale(key + "redis/poolSize",10),
+        DBNum: etcd.GetIntVale(key + "redis/dbNum",0),
     }
-    //断开和etcd 的连接
-    etcd.disconnect()
 }
 
 //返回sys库信息

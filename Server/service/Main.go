@@ -17,6 +17,9 @@ type SequenceServer struct{
     getSequenceHandler grpc_transport.Handler
 }
 
+var (
+    snowFlake SnowFlake
+)
 
 func (s *SequenceServer)GetSequence(ctx gcontext.Context, req *sequence.SequenceRequest)(*sequence.SequenceReply,error){
     _, rsp, err := s.getSequenceHandler.ServeGRPC(ctx, req)
@@ -43,17 +46,19 @@ func makeGetSeqEndpoint() endpoint.Endpoint {
         req := request.(*sequence.SequenceRequest)
         seq := new(sequence.SequenceReply)
         seq.CallSeq = req.CallSeq
+
+        id := snowFlake.GetSnowflakeId()
         if req.Target == 1 || req.Target == 3{
-            seq.CallID = GetSnowflakeId()
+            seq.CallID = id
         }
         
         if req.Target == 2 || req.Target == 3{
             if req.Mode == 1{
                 // 有序序号
-                seq.Seq = GetOrderSequnce(req.FirstBID,req.SecondBID)
+                seq.Seq = GetOrderSequence(req.FirstBID,req.SecondBID)
             }else{
                 // 无序序号
-                seq.Seq = "bbb"
+                seq.Seq = GetDisorderSeq(req.FirstBID,req.SecondBID,id)
             }
         }
         return seq,nil
@@ -71,7 +76,7 @@ func NewServer(port int){
         decodeRequest,
         encodeResponse,
     )
-    
+    snowFlake.Init()
     //监听服务
     serviceAddress := fmt.Sprintf("0.0.0.0:%d",port)
     log.Info("listen:" + serviceAddress)

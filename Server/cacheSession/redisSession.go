@@ -48,3 +48,7 @@ func (rds *redisConIns)InitCon(){
 func (rds *redisConIns)GetClient()*redis.Client{
 	return rds.client
 }
+
+func (rds *redisConIns)Close(){
+	rds.Close()
+}

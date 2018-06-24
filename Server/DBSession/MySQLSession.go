@@ -12,26 +12,26 @@ import (
 
 
 
-var DBIns *DBConnectInstance
+var dbIns *dbConnectInstance
 
 var once sync.Once
 
 
 //单例返回 DBCconnect Instance
-func GetInstance() *DBConnectInstance {
+func GetInstance() *dbConnectInstance {
     once.Do(func() {
-        DBIns = &DBConnectInstance {}
+        dbIns = &dbConnectInstance{}
     })
-    return DBIns
+    return dbIns
 }
 
 
-type DBConnectInstance struct{
+type dbConnectInstance struct{
     SYSDB *gorm.DB
 }
 
 
-func (db *DBConnectInstance)connectSYSDB(cfg *configer.DBConfig){
+func (db *dbConnectInstance)connectSYSDB(cfg *configer.DBConfig){
     var err error
     sysDBUrl := cfg.DBUser+":" + cfg.DBPasswd + "@tcp("+ cfg.DBHostIP + ":" + cfg.DBHostPort + ")/" + cfg.DBName + "?charset=utf8&parseTime=True&loc=Local"
     db.SYSDB, err = gorm.Open("mysql",sysDBUrl)
@@ -48,7 +48,7 @@ func (db *DBConnectInstance)connectSYSDB(cfg *configer.DBConfig){
 
 
 
-func (db *DBConnectInstance)InitDBCon(){
+func (db *dbConnectInstance)InitDBCon(){
     dbConfiger := configer.GetInstance()
     //init db
     //1.连接parkDB
@@ -58,6 +58,6 @@ func (db *DBConnectInstance)InitDBCon(){
 
 
 //断开连接
-func (db *DBConnectInstance)UninitDBCon(){
+func (db *dbConnectInstance)UninitDBCon(){
     db.SYSDB.Close()
 }

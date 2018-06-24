@@ -7,7 +7,7 @@ import (
     "github.com/mfslog/sequenceService/Server/log"
 )
 
-func GetOrderSequnce(firstId int32, secondId int32)string{
+func GetOrderSequence(firstId int32, secondId int32)string{
     seqRecord := DAO.TSequenceNumber{}
     seqRecord.GetOneByBusinessID(firstId, secondId)
     currentTime := time.Now()
@@ -46,7 +46,7 @@ func GetOrderSequnce(firstId int32, secondId int32)string{
     if newValue < seqRecord.MaxValue {
         curstr := currentTime.Format("20060102")
         seqRecord.UpdateSeqByBussinessID(firstId,secondId,newValue)
-        sequence = fmt.Sprintf("%s%d%d%.10d",curstr,firstId,secondId,newValue)
+        sequence = fmt.Sprintf("%d%d%s%.10d",firstId,secondId,curstr,newValue)
     }else{
         log.Error(fmt.Sprintf("error current sequence for [%d:%d] Depletion",firstId,secondId))
         sequence = ""

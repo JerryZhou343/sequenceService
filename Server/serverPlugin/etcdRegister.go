@@ -8,6 +8,7 @@ import (
     "strconv"
     "os"
     "github.com/go-kit/kit/log"
+    "github.com/mfslog/sequenceService/Server/common"
 )
 
 type ServiceInfo struct{
@@ -46,8 +47,12 @@ func NewEtcdService(info ServiceInfo, endPoints []string)(*EtcdService, error){
 
 func (s *EtcdService)RegisterService(){
     prefixKey := strings.TrimRight(s.Info.BasePath,"/") + "/" + s.Info.Name +"/" + "host_list_t/"
+    fPrefixKey := strings.TrimRight(s.Info.BasePath,"/") + "/" + s.Info.Name +"/" + "host_list_f/"
     instance := s.Info.IP +":" + strconv.Itoa(s.Info.Port)
     key := prefixKey + instance
+
+    //记录常驻机器地址
+    common.HostFPath = fPrefixKey + instance
     value := instance
     // 创建注册器
     registrar := etcdv3.NewRegistrar(s.Client, etcdv3.Service{

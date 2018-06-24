@@ -6,7 +6,6 @@ import (
     "github.com/spf13/cobra"
     "github.com/spf13/viper"
     "fmt"
-    "net"
     configer2 "github.com/mfslog/sequenceService/Server/configer"
     "github.com/mfslog/sequenceService/Server/common"
     "github.com/mfslog/sequenceService/Server/log"
@@ -14,6 +13,7 @@ import (
     "github.com/mfslog/sequenceService/Server/serverPlugin"
     "github.com/mfslog/sequenceService/Server/service"
     "github.com/mfslog/sequenceService/Server/cacheSession"
+    "net"
 )
 
 func main(){
@@ -44,11 +44,15 @@ func main(){
                 fmt.Println("can't find configer file")
                 os.Exit(1)
             }
+
+            common.MachineID = viper.GetInt64("common.machine_id")
             
             //2.配置日志信息
             log.SetupLogger();
             
             //3.加载etcd配置内容
+            etcd := serverplugin.GetEtcdConIns()
+            etcd.Init()
             configer := configer2.GetInstance()
             configer.LocadConfig()
             
@@ -65,16 +69,22 @@ func main(){
             
             //6.向etcd 注册服务
             // 获取IP 和  port
-            ifaces, _ := net.Interfaces()
-            for _, i := range  ifaces{
-                addrs, _ := i.Addrs()
-                for _, addr := range addrs{
-                    switch v := addr.(type) {
-                    case *net.IPAddr:
-                        common.IP = v.IP.String()
-                    }
-                }
-            }
+           addrs, err := net.InterfaceAddrs()
+           if err != nil{
+               log.Error("can't get host ip")
+               os.Exit(1)
+           }
+
+           for _,address := range addrs{
+               if ipnet, ok := address.(*net.IPNet); ok &&
+                   !ipnet.IP.IsLoopback() &&
+                   !ipnet.IP.IsMulticast() {
+                   if ipnet.IP.To4() != nil{
+                       common.IP = ipnet.IP.String()
+                   }
+               }
+           }
+
             common.Port = viper.GetInt("service_register.service_port")
             //etcd service
             serviceInfo := serverplugin.ServiceInfo{
@@ -114,5 +124,11 @@ func uninitialize(){
     //断开mysql连接
    dbIns := DBSession.GetInstance()
    dbIns.UninitDBCon()
-    //断开kafka 连接
+
+   redisIns := cacheSession.GetInstance()
+   redisIns.Close()
+
+
+   etcdIns := serverplugin.GetEtcdConIns()
+   etcdIns.Close()
 }
