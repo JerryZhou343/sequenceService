@@ -5,9 +5,20 @@ import (
     "time"
     "fmt"
     "github.com/mfslog/sequenceService/Server/log"
+    "github.com/mfslog/sequenceService/Server/serverPlugin"
+    "github.com/mfslog/sequenceService/Server/common"
 )
 
 func GetOrderSequence(firstId int32, secondId int32)string{
+
+    etcd := serverplugin.GetEtcdConIns()
+    r := etcd.Lock(common.LockPath)
+    if r == common.R_ERR{
+        return ""
+    }
+
+    defer etcd.UnLock()
+
     seqRecord := DAO.TSequenceNumber{}
     seqRecord.GetOneByBusinessID(firstId, secondId)
     currentTime := time.Now()
@@ -48,7 +59,8 @@ func GetOrderSequence(firstId int32, secondId int32)string{
         seqRecord.UpdateSeqByBussinessID(firstId,secondId,newValue)
         sequence = fmt.Sprintf("%d%d%s%.10d",firstId,secondId,curstr,newValue)
     }else{
-        log.Error(fmt.Sprintf("error current sequence for [%d:%d] Depletion",firstId,secondId))
+        log.Error(fmt.Sprintf("error current sequence for [%d:%d] value [%d:%d] Depletion",
+            firstId,secondId,newValue, seqRecord.MaxValue))
         sequence = ""
     }
     return sequence

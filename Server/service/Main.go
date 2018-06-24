@@ -46,6 +46,7 @@ func makeGetSeqEndpoint() endpoint.Endpoint {
         req := request.(*sequence.SequenceRequest)
         seq := new(sequence.SequenceReply)
         seq.CallSeq = req.CallSeq
+        //log.Info(fmt.Sprintf("call seq:%d", req.CallSeq))
 
         id := snowFlake.GetSnowflakeId()
         if req.Target == 1 || req.Target == 3{

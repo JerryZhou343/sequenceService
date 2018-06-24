@@ -14,6 +14,7 @@ import (
     "github.com/mfslog/sequenceService/Server/service"
     "github.com/mfslog/sequenceService/Server/cacheSession"
     "net"
+    "strings"
 )
 
 func main(){
@@ -46,7 +47,10 @@ func main(){
             }
 
             common.MachineID = viper.GetInt64("common.machine_id")
-            
+            basePath := viper.GetString("service_register.base_path")
+            name := viper.GetString("service_register.service_name")
+            common.LockPath = strings.TrimRight(basePath,"/") + "/" + name + "/dblock"
+
             //2.配置日志信息
             log.SetupLogger();
             

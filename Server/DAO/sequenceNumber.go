@@ -5,6 +5,7 @@ import (
     "github.com/mfslog/sequenceService/Server/cacheSession"
     "fmt"
     "github.com/mfslog/sequenceService/Server/log"
+    "strconv"
 )
 
 type TSequenceNumber struct{
@@ -84,21 +85,29 @@ func (seq *TSequenceNumber)getOneByBussinessIDFromCache(firstId int32,secondId i
     keyExists, _ := client.Exists(key).Result()
 
     if keyExists > 0{
-        //log.Debug("have key")
         values, err := client.HMGet(key,"current_value","step_length","last_reset_time",
             "reset_type","base_value","max_value").Result()
         if err == nil && values != nil {
+            var tmp int
             seq.FirstId = firstId
             seq.SecondId = secondId
-            seq.CurrentValue = values[0].(int64)
-            seq.StepLength = values[1].(int32)
-            seq.LastResetTime = values[2].(int32)
-            seq.ResetType = values[3].(int32)
-            seq.BaseValue = values[4].(int64)
-            seq.MaxValue = values[5].(int64)
+            seq.CurrentValue,_ = strconv.ParseInt(values[0].(string),10,64)
+
+            tmp,_ = strconv.Atoi(values[1].(string))
+            seq.StepLength = int32(tmp)
+
+            tmp,_ = strconv.Atoi(values[2].(string))
+            seq.LastResetTime =int32(tmp)
+
+            tmp, _ = strconv.Atoi(values[3].(string))
+            seq.ResetType = int32(tmp)
+
+            seq.BaseValue ,_= strconv.ParseInt(values[4].(string),10,64)
+
+            seq.MaxValue,_ = strconv.ParseInt(values[5].(string),10,64)
+            //fmt.Println(seq.CurrentValue)
         }
     } else{
-        //log.Debug("not have key")
         seq.getOneByBusinessIDFromDB(firstId,secondId)
     }
 }

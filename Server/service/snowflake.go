@@ -65,13 +65,13 @@ func (sf *SnowFlake)GetSnowflakeId() int64 {
         rightBinValue <<= 22
         
         id := rightBinValue | sf.machineID | sf.sn
-        
         return id
     }
     
     if curTimeStamp > sf.lastTimeStamp {
         sf.sn = 0
         sf.lastTimeStamp = curTimeStamp
+        sf.setLastTimeStamp()
         
         // 取 64 位的二进制数 0000000000 0000000000 0000000000 0001111111111 1111111111 1111111111  1 ( 这里共 41 个 1 )和时间戳进行并操作
         
@@ -83,7 +83,7 @@ func (sf *SnowFlake)GetSnowflakeId() int64 {
         rightBinValue <<= 22
         
         id := rightBinValue | sf.machineID | sf.sn
-        
+
         return id
         
     }
@@ -91,6 +91,6 @@ func (sf *SnowFlake)GetSnowflakeId() int64 {
     if curTimeStamp < sf.lastTimeStamp {
         return 0
     }
-    
+
     return 0
 }

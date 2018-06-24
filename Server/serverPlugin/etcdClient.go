@@ -10,6 +10,8 @@ import (
     "github.com/spf13/viper"
     "os"
     "github.com/mfslog/sequenceService/Server/log"
+    "github.com/coreos/etcd/clientv3/concurrency"
+    "github.com/mfslog/sequenceService/Server/common"
 )
 
 
@@ -29,14 +31,24 @@ func GetEtcdConIns() *etcdClient {
 type etcdClient struct {
     
     client *clientv3.Client
+    session *concurrency.Session
+    mutex *concurrency.Mutex
 }
 
 func (etcd *etcdClient)Init(){
+    var err error
     //local db config
     etcdEndPoints := viper.GetStringSlice("service_register.etcd_address")
     //连接etcd
-    err := etcd.connectEtcd(etcdEndPoints)
+    err = etcd.connectEtcd(etcdEndPoints)
     if err != nil{
+        os.Exit(1)
+    }
+
+    etcd.session, err = concurrency.NewSession(etcd.client)
+
+    if err != nil{
+        fmt.Println("create session failed." + err.Error())
         os.Exit(1)
     }
 }
@@ -129,4 +141,22 @@ func (etcd *etcdClient)GetInt64Value(key string , defaultValue int64)int64{
         value,_ = strconv.ParseInt(tmpValue,10,64)
     }
     return value
+}
+
+//获得锁
+func (etcd *etcdClient)Lock(prefixLock string) int {
+    var err error
+    etcd.mutex = concurrency.NewMutex(etcd.session, prefixLock)
+    if etcd.mutex.Lock(context.TODO()); err != nil{
+        log.Error("get lock failed" + err.Error())
+        return common.R_ERR
+    }
+    return common.R_OK
+}
+
+//释放锁
+func (etcd *etcdClient)UnLock(){
+   if err := etcd.mutex.Unlock(context.TODO()); err != nil{
+       log.Error("release lock failed.")
+   }
 }

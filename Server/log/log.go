@@ -51,7 +51,7 @@ func SetupLogger(){
         }
     }
     
-    absFile := strings.TrimRight(logPath, "/") + "/" + common.ApplicationName + "_" + common.IP + "-"+strconv.Itoa(common.Port) + ".log"
+    absFile := strings.TrimRight(logPath, "/") + "/" + common.ApplicationName + "_m" + strconv.FormatInt(common.MachineID,10)  + ".log"
     //var fd *log2kafka = &log2kafka{};
     //fd.init();
     var fd *os.File

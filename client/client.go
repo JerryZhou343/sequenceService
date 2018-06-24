@@ -12,10 +12,26 @@ import (
     "fmt"
     "google.golang.org/grpc"
     "github.com/mfslog/sequenceService/proto"
+    "os"
+    "github.com/go-kit/kit/log/level"
 )
 
+var logger log.Logger
+func NewLogger()log.Logger{
+    var fd  *os.File
+    fd, _ = os.Create("seq.log")
+    logger := log.NewJSONLogger(log.NewSyncWriter(fd))
+    logger = log.With(logger,
+        //"module", MineDodule,
+        "ts", log.DefaultTimestamp,
+        "caller", log.DefaultCaller,
+    )
+    logger = level.NewFilter(logger, level.AllowAll())
+    return logger
+}
+
 func main() {
-    
+    logger = NewLogger()
     var (
         //注册中心地址
         etcdServer = "192.168.0.109:2379"
@@ -32,7 +48,7 @@ func main() {
     if err != nil {
         panic(err)
     }
-    logger := log.NewNopLogger()
+    //logger := log.NewNopLogger()
     //创建实例管理器, 此管理器会Watch监听etc中prefix的目录变化更新缓存的服务实例数据
     instancer, err := etcdv3.NewInstancer(client, prefix, logger)
     if err != nil {
@@ -55,16 +71,26 @@ func main() {
     
     //现在我们可以通过 endPoint 发起请求了
     req := struct{}{}
-    if _, err = reqEndPoint(ctx, req); err != nil {
-        panic(err)
+    for  {
+        //fmt.Println(time.Now())
+        logger.Log("msg",time.Now().String())
+        if _, err = reqEndPoint(ctx, req); err != nil {
+            //panic(err)
+            //fmt.Println(err)
+            logger.Log("msg",err.Error())
+        }
+
+        logger.Log("msg",time.Now().String())
+        //fmt.Println(time.Now())
     }
+
 }
 
 
 //通过传入的 实例地址  创建对应的请求endPoint
 func reqFactory(instanceAddr string) (endpoint.Endpoint, io.Closer, error) {
     return func(ctx context.Context, request interface{}) (interface{}, error) {
-        fmt.Println("请求服务: ", instanceAddr)
+        //fmt.Println("请求服务: ", instanceAddr)
         conn, err := grpc.Dial(instanceAddr, grpc.WithInsecure())
         if err != nil {
             fmt.Println(err)
@@ -72,10 +98,18 @@ func reqFactory(instanceAddr string) (endpoint.Endpoint, io.Closer, error) {
         }
         defer conn.Close()
         seqClient := sequence.NewSequenceClient(conn)
-        seqInfo,_:=seqClient.GetSequence(context.Background(),&sequence.SequenceRequest{CallSeq: 1, FirstBID:42000000, SecondBID:58,Target:3, Mode:2})
-        fmt.Println("get call id")
-        fmt.Println("call seq", " => ", "call id:", seqInfo.GetCallID())
-        fmt.Println("sequence " , seqInfo.GetSeq() )
+        stamp := time.Now().UnixNano()
+        seqInfo,_:=seqClient.GetSequence(context.Background(),&sequence.SequenceRequest{CallSeq: stamp, FirstBID:42000000, SecondBID:58,Target:3, Mode:1})
+        fmt.Println("==========get==========")
+        fmt.Println("origin stamp",stamp)
+        fmt.Println("call seq",seqInfo.GetCallSeq())
+        fmt.Println("call id:", seqInfo.GetCallID())
+        fmt.Println("sequence:" , seqInfo.GetSeq() )
+        fmt.Println("==========end==========")
+        logger.Log("msg","==================")
+        logger.Log("msg",seqInfo.GetCallID())
+        logger.Log("msg",seqInfo.GetSeq())
+        logger.Log("msg","==================")
         return nil,nil
     },nil,nil
 }
