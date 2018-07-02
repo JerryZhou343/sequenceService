@@ -4,30 +4,64 @@ import (
     "context"
     grpc_transport "github.com/go-kit/kit/transport/grpc"
     gcontext "golang.org/x/net/context"
-    "github.com/mfslog/sequenceService/proto"
+    pb "github.com/mfslog/sequenceService/proto"
     "github.com/go-kit/kit/endpoint"
     "net"
     "google.golang.org/grpc"
     "fmt"
     "github.com/mfslog/sequenceService/Server/log"
+    "github.com/go-kit/kit/metrics"
 )
-
-
-type SequenceServer struct{
-    getSequenceHandler grpc_transport.Handler
-}
 
 var (
     snowFlake SnowFlake
 )
 
-func (s *SequenceServer)GetSequence(ctx gcontext.Context, req *sequence.SequenceRequest)(*sequence.SequenceReply,error){
-    _, rsp, err := s.getSequenceHandler.ServeGRPC(ctx, req)
-    if err != nil {
-        return nil, err
-    }
-    return rsp.(*sequence.SequenceReply),err
+
+type basicService struct{}
+
+//服务
+func (s basicService)GetSequence(ctx gcontext.Context, req *pb.SequenceRequest)(*pb.SequenceReply,error){
+        seq := new(pb.SequenceReply)
+        seq.CallSeq = req.CallSeq
+
+        id := snowFlake.GetSnowflakeId()
+        if req.Target == 1 || req.Target == 3{
+            seq.CallID = id
+        }
+
+        if req.Target == 2 || req.Target == 3{
+            if req.Mode == 1{
+                // 有序序号
+                seq.Seq = GetOrderSequence(req.FirstBID,req.SecondBID)
+            }else{
+                // 无序序号
+                seq.Seq = GetDisorderSeq(req.FirstBID,req.SecondBID,id)
+            }
+        }
+        return seq,nil
 }
+
+func NewBasicService() pb.SequenceServer{
+    return basicService{}
+}
+
+type ServiceMddileware func(server pb.SequenceServer)pb.SequenceServer
+
+func NewSequenceService( counter metrics.Counter, chart metrics.Histogram)pb.SequenceServer{
+    var svc pb.SequenceServer
+    {
+        svc = NewBasicService()
+        svc = instrumentingMiddleware(counter,chart)(svc)
+
+    }
+    return svc
+}
+
+
+
+
+
 
 
 func decodeRequest(_ context.Context, req interface{}) (interface{}, error) {
@@ -40,30 +74,9 @@ func encodeResponse(_ context.Context, rsp interface{}) (interface{}, error) {
     return rsp, nil
 }
 
-
-func makeGetSeqEndpoint() endpoint.Endpoint {
-    return func(ctx context.Context, request interface{}) (interface{}, error) {
-        req := request.(*sequence.SequenceRequest)
-        seq := new(sequence.SequenceReply)
-        seq.CallSeq = req.CallSeq
-        //log.Info(fmt.Sprintf("call seq:%d", req.CallSeq))
-
-        id := snowFlake.GetSnowflakeId()
-        if req.Target == 1 || req.Target == 3{
-            seq.CallID = id
-        }
-        
-        if req.Target == 2 || req.Target == 3{
-            if req.Mode == 1{
-                // 有序序号
-                seq.Seq = GetOrderSequence(req.FirstBID,req.SecondBID)
-            }else{
-                // 无序序号
-                seq.Seq = GetDisorderSeq(req.FirstBID,req.SecondBID,id)
-            }
-        }
-        return seq,nil
-    }
+//建立Seq 服务接入点
+func makeGetSeqEndpoint(s SequenceService) endpoint.Endpoint {
+    return s.GetSequence()
 }
 
 
@@ -71,7 +84,8 @@ func makeGetSeqEndpoint() endpoint.Endpoint {
 func NewServer(port int){
     
     //构建服务
-    seqServer := new(SequenceServer)
+    seqServer := new(SequenceService)
+    //创建一个传输层
     seqHandler := grpc_transport.NewServer(
         makeGetSeqEndpoint(),
         decodeRequest,
