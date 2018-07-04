@@ -11,10 +11,10 @@ import (
     "github.com/mfslog/sequenceService/Server/log"
     "github.com/mfslog/sequenceService/Server/DBSession"
     "github.com/mfslog/sequenceService/Server/serverPlugin"
-    "github.com/mfslog/sequenceService/Server/service"
     "github.com/mfslog/sequenceService/Server/cacheSession"
     "net"
     "strings"
+    "github.com/mfslog/sequenceService/Server/transport"
 )
 
 func main(){
@@ -103,7 +103,7 @@ func main(){
             etcdService.RegisterService()
             
             //7.监听端口,对外服务
-           service.NewServer(common.Port)
+           transport.NewServer(common.Port)
         },
     }
     
