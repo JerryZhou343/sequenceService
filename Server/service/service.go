@@ -5,19 +5,18 @@ import (
     pb "github.com/mfslog/sequenceService/proto"
 )
 
-var (
+
+
+type basicService struct{
     snowFlake SnowFlake
-)
-
-
-type basicService struct{}
+}
 
 //服务
 func (s basicService)GetSequence(ctx gcontext.Context, req *pb.SequenceRequest)(*pb.SequenceReply,error){
         seq := new(pb.SequenceReply)
         seq.CallSeq = req.CallSeq
 
-        id := snowFlake.GetSnowflakeId()
+        id := s.snowFlake.GetSnowflakeId()
         if req.Target == 1 || req.Target == 3{
             seq.CallID = id
         }
@@ -35,7 +34,9 @@ func (s basicService)GetSequence(ctx gcontext.Context, req *pb.SequenceRequest)(
 }
 
 func NewBasicService() pb.SequenceServer{
-    return basicService{}
+    var snowFlake SnowFlake
+    snowFlake.Init()
+    return basicService{snowFlake}
 }
 
 

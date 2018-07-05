@@ -9,7 +9,7 @@ import ("github.com/go-kit/kit/endpoint"
 
 func MakeGetSequenceEndpoint(s pb.SequenceServer) endpoint.Endpoint{
 	return func(ctx gcontext.Context, request interface{})(response interface{},err error){
-		req,_ := request.(pb.SequenceRequest)
-		return s.GetSequence(ctx,&req)
+		req,_ := request.(*pb.SequenceRequest)
+		return s.GetSequence(ctx,req)
 	}
 }
