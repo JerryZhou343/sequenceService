@@ -3,6 +3,9 @@ package service
 import (
     gcontext "golang.org/x/net/context"
     pb "github.com/mfslog/sequenceService/proto"
+    "github.com/go-kit/kit/metrics"
+    "github.com/mfslog/sequenceService/Server/log"
+    "fmt"
 )
 
 
@@ -17,6 +20,7 @@ func (s basicService)GetSequence(ctx gcontext.Context, req *pb.SequenceRequest)(
         seq.CallSeq = req.CallSeq
 
         id := s.snowFlake.GetSnowflakeId()
+        log.Info(fmt.Sprintf("accept call request: %s",seq.CallSeq))
         if req.Target == 1 || req.Target == 3{
             seq.CallID = id
         }
@@ -40,10 +44,11 @@ func NewBasicService() pb.SequenceServer{
 }
 
 
-func NewSequenceService( )pb.SequenceServer{
+func NewSequenceService(callCounter metrics.Counter )pb.SequenceServer{
     var svc pb.SequenceServer
     {
         svc = NewBasicService()
+        svc = InstrumentingMiddleware(callCounter)(svc)
     }
     return svc
 }

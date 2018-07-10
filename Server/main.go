@@ -15,6 +15,17 @@ import (
     "net"
     "strings"
     "github.com/mfslog/sequenceService/Server/transport"
+    "github.com/oklog/run"
+    "github.com/go-kit/kit/metrics/prometheus"
+    "net/http"
+    "github.com/prometheus/client_golang/prometheus/promhttp"
+    "github.com/go-kit/kit/metrics"
+    stdprometheus "github.com/prometheus/client_golang/prometheus"
+    "google.golang.org/grpc"
+    pb "github.com/mfslog/sequenceService/proto"
+
+    stdzipkin "github.com/openzipkin/zipkin-go"
+    zipkinhttp "github.com/openzipkin/zipkin-go/reporter/http"
 )
 
 func main(){
@@ -101,9 +112,65 @@ func main(){
             //load configer from etcd
             etcdService , _ := serverplugin.NewEtcdService(serviceInfo,viper.GetStringSlice("service_register.etcd_address"))
             etcdService.RegisterService()
-            
+            var CallSeqCounter metrics.Counter
+            var zipkinTracer *stdzipkin.Tracer
+            {
+                var (
+                    err error
+                    hostPort = "0.0.0.0:8486"
+                    serviceName = "sequence"
+                    useNoopTracer = false
+                    reporter = zipkinhttp.NewReporter(viper.GetString("common.zipkinUrl"))
+                )
+                defer reporter.Close()
+                zEP , _ := stdzipkin.NewEndpoint(serviceName,hostPort)
+                zipkinTracer, err = stdzipkin.NewTracer(
+                    reporter,stdzipkin.WithLocalEndpoint(zEP),stdzipkin.WithNoopTracer(useNoopTracer),
+                )
+                if err != nil{
+                    os.Exit(1)
+                }
+            }
+            var g run.Group
+            {
+                CallSeqCounter  = prometheus.NewCounterFrom(stdprometheus.CounterOpts{
+                    Namespace: "private",
+                    Subsystem: "sequence",
+                    Name:      "call_summed",
+                    Help:      "Total count of get sequence via the getSequence method.",
+                }, []string{})
+
+                http.DefaultServeMux.Handle("/metrics", promhttp.Handler())
+                addr := fmt.Sprint("0.0.0.0:",viper.GetInt("service_register.metric_port"))
+                fmt.Println("test metric",addr)
+                metricListener,err := net.Listen("tcp",addr)
+                if err != nil{
+                    os.Exit(1)
+                }
+                g.Add(func()error{
+
+                    return http.Serve(metricListener,http.DefaultServeMux)
+                }, func(error){
+                    metricListener.Close()
+                })
+            }
             //7.监听端口,对外服务
-           transport.NewServer(common.Port)
+            {
+
+                serviceAddress := fmt.Sprintf("0.0.0.0:%d",common.Port)
+                log.Info("listen:" + serviceAddress)
+
+                ls, _ := net.Listen("tcp", serviceAddress)
+                g.Add(func() error {
+                    baseServer := grpc.NewServer()
+                    pb.RegisterSequenceServer(baseServer, transport.NewGrpcServer(CallSeqCounter,zipkinTracer))
+                    return baseServer.Serve(ls)
+                }, func(e error) {
+                   ls.Close()
+                })
+            }
+            g.Run()
+            uninitialize()
         },
     }
     

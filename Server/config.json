@@ -1,12 +1,14 @@
 {
   "common":{
     "log_path":"./logFile/",
-    "machine_id":123
+    "machine_id":123,
+    "zipkinUrl":"http://192.168.0.108:9411/api/v2/spans"
   },
   "service_register":{
     "service_name":"sequenceNumber",
     "base_path":"/private.com/service_cluster/",
     "service_port":8484,
-    "etcd_address":["http://192.168.0.109:2379"]
+    "etcd_address":["http://192.168.0.109:2379"],
+    "metric_port":8485
   }
 }
