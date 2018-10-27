@@ -9,9 +9,7 @@ import (
     configer2 "github.com/mfslog/sequenceService/Server/configer"
     "github.com/mfslog/sequenceService/Server/common"
     "github.com/mfslog/sequenceService/Server/log"
-    "github.com/mfslog/sequenceService/Server/DBSession"
     "github.com/mfslog/sequenceService/Server/serverPlugin"
-    "github.com/mfslog/sequenceService/Server/cacheSession"
     "net"
     "strings"
     "github.com/mfslog/sequenceService/Server/transport"
@@ -70,18 +68,7 @@ func main(){
             etcd.Init()
             configer := configer2.GetInstance()
             configer.LocadConfig()
-            
-            //4.连接mysql数据库
-            dbInstance := DBSession.GetInstance()
-            dbInstance.InitDBCon()
-            
-            
-            //5.连接redis 数据库
-            cacheInstance := cacheSession.GetInstance()
-            cacheInstance.InitCon()
-            
 
-            
             //6.向etcd 注册服务
             // 获取IP 和  port
            addrs, err := net.InterfaceAddrs()
@@ -192,14 +179,6 @@ func main(){
 
 
 func uninitialize(){
-    //断开mysql连接
-   dbIns := DBSession.GetInstance()
-   dbIns.UninitDBCon()
-
-   redisIns := cacheSession.GetInstance()
-   redisIns.Close()
-
-
    etcdIns := serverplugin.GetEtcdConIns()
    etcdIns.Close()
 }

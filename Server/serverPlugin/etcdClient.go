@@ -1,7 +1,7 @@
 package serverplugin
 
 import (
-    "github.com/coreos/etcd/clientv3"
+    "go.etcd.io/etcd/clientv3"
     "time"
     "context"
     "fmt"
@@ -10,7 +10,7 @@ import (
     "github.com/spf13/viper"
     "os"
     "github.com/mfslog/sequenceService/Server/log"
-    "github.com/coreos/etcd/clientv3/concurrency"
+    "go.etcd.io/etcd/clientv3/concurrency"
     "github.com/mfslog/sequenceService/Server/common"
 )
 
