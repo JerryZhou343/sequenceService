@@ -1,0 +1,10 @@
+srvID: 1
+mysqlAddr: 127.0.0.1:3306
+mysqlUser: root
+mysqlPassword: root
+mysqlDBName: sequence
+mysqlConLimit: 128
+etcdAddrs: 127.0.0.1:2379
+etcdPath: /sequence/
+redisAddr: 6379
+redisPassword:
